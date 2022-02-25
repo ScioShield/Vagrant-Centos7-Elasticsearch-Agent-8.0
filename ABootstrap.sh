@@ -4,6 +4,15 @@
 # unpack the agent
 tar -xvf /vagrant/elastic-agent-8.0.0-linux-x86_64.tar.gz -C /opt/
 
+# Check if Kibana is reachable 
+kcheck=$(curl -L --silent --output /dev/null --cacert /vagrant/ca.crt -XGET 'https://10.0.0.10:5601' --write-out %{http_code})
+until [ $kcheck -eq 200 ]
+do
+  echo "Checking if Kibana is reachable, retrying..."
+  sleep 5
+done
+echo "Kibana is reachable"
+
 # Install the agent
 yes | sudo /opt/elastic-agent-8.0.0-linux-x86_64/elastic-agent install -f \
   --url=https://10.0.0.10:8220 \
