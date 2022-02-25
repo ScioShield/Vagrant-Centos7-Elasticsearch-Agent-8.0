@@ -15,3 +15,6 @@ To log in run
 <code>vagrant ssh Agent</code>  
 Log into Kibana  
 <code>https://10.0.0.10:5601</code>  
+Username: <code>elastic</code>  
+The password is printed to the console / terminal you ran <code>vagrant up</code> from  
+under the section <code>--Security autoconfiguration information--</code>  
