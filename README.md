@@ -5,7 +5,7 @@ Post - TBD
 
 ## Requirements
 RAM - 13GB  
-CPU - 7 vCores  
+CPU - 8 vCores  
 
 ## Setup  
 Vagrantfile to setup single node ES + Kib + Fleet cluster and a stand alone Elastic Agent  
