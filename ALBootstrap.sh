@@ -14,7 +14,7 @@ done
 echo "Kibana is reachable"
 
 # Install the agent
-yes | sudo /opt/elastic-agent-8.0.0-linux-x86_64/elastic-agent install -f \
+sudo /opt/elastic-agent-8.0.0-linux-x86_64/elastic-agent install -f \
   --url=https://10.0.0.10:8220 \
   --enrollment-token=$(cat /vagrant/AEtoken.txt) \
   --certificate-authorities=/vagrant/ca.crt

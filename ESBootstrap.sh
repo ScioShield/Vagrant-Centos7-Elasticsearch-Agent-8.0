@@ -15,7 +15,7 @@ yum install -y unzip wget
 # Get the GPG key
 rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
 
-# Add Elastic and Kibana and the Elastic Agent
+# Add Elastic and Kibana and the Elastic Agents
 # Download and install Ealsticsearch and Kibana change ver to whatever you want
 # For me 8.0.0 is the latest we palce it in /vagrant to not download it again
 # The -q flag is need to not spam stdout on the host machine
@@ -29,6 +29,9 @@ wget -nc -q https://artifacts.elastic.co/downloads/kibana/kibana-$VER-x86_64.rpm
 
 wget -nc -q https://artifacts.elastic.co/downloads/beats/elastic-agent/elastic-agent-$VER-linux-x86_64.tar.gz -P /vagrant
 wget -nc -q https://artifacts.elastic.co/downloads/beats/elastic-agent/elastic-agent-$VER-linux-x86_64.tar.gz.sha512 -P /vagrant
+
+wget -nc -q https://artifacts.elastic.co/downloads/beats/elastic-agent/elastic-agent-$VER-windows-x86_64.zip -P /vagrant
+wget -nc -q https://artifacts.elastic.co/downloads/beats/elastic-agent/elastic-agent-$VER-windows-x86_64.zip.sha512 -P /vagrant
 
 # We output to a temp password file allwoing auto config later on
 tar -xvf /vagrant/elastic-agent-8.0.0-linux-x86_64.tar.gz -C /opt/
@@ -114,7 +117,7 @@ systemctl enable elasticsearch
 # Add the Kibana password to the keystore
 grep "New value:" /root/Kibpass.txt | awk '{print $3}' | sudo /usr/share/kibana/bin/kibana-keystore add --stdin elasticsearch.password
 
-# Configure and start Kibana adding in the unique kibana_system keystore pass and gening the sec keys
+# Configure and start Kibana adding in the unique kibana_system keystore pass and generating the sec keys
 cat > /etc/kibana/kibana.yml << EOF
 # =========================== Kibana Configuration ============================
 # -------------------------------- Network ------------------------------------

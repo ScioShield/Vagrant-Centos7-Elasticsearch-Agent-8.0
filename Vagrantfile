@@ -13,17 +13,31 @@ Vagrant.configure("2") do |config|
       v.customize ["modifyvm", :id, "--name", "elastic-8-sec"]
     end
   end
-  config.vm.define "Agent" do |agent|
-    agent.vm.box = "bento/centos-7"
-    agent.vm.hostname = 'agent-8-sec'
-    agent.vm.box_url = "bento/centos-7"
-    agent.vm.provision :shell, path: "ABootstrap.sh"
-    agent.vm.network :private_network, ip: "10.0.0.20"
-    agent.vm.provider :virtualbox do |v|
+  config.vm.define "Linux" do |linux|
+    linux.vm.box = "bento/centos-7"
+    linux.vm.hostname = 'linux-agent-8'
+    linux.vm.box_url = "bento/centos-7"
+    linux.vm.provision :shell, path: "ALBootstrap.sh"
+    linux.vm.network :private_network, ip: "10.0.0.20"
+    linux.vm.provider :virtualbox do |v|
       v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
       v.customize ["modifyvm", :id, "--cpus", 1]
       v.customize ["modifyvm", :id, "--memory", 1024]
-      v.customize ["modifyvm", :id, "--name", "agent-8-sec"]
+      v.customize ["modifyvm", :id, "--name", "linux-agent-8"]
+    end
+  end
+  config.vm.define "Windows" do |windows|
+    windows.vm.box = "gusztavvargadr/windows-10-21h2-enterprise"
+    windows.vm.box_version = "2102.0.2202"
+    windows.vm.hostname = 'windows-agent-8'
+    windows.vm.box_url = "gusztavvargadr/windows-10-21h2-enterprise"
+    windows.vm.provision :shell, privileged: "true", path: "AWBootstrap.ps1"
+    windows.vm.network :private_network, ip: "10.0.0.30"
+    windows.vm.provider :virtualbox do |v|
+	  v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--cpus", 2]
+      v.customize ["modifyvm", :id, "--memory", 4096]
+      v.customize ["modifyvm", :id, "--name", "windows-agent-8"]
     end
   end
 end
