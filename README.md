@@ -4,7 +4,7 @@
 Post - TBD  
 
 ## Requirements
-RAM - 11GB  
+RAM - 13GB  
 CPU - 7 vCores  
 
 ## Setup  
