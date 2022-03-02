@@ -17,7 +17,7 @@ rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
 
 # Add Elastic and Kibana and the Elastic Agents
 # Download and install Ealsticsearch and Kibana change ver to whatever you want
-# For me 8.0.0 is the latest we palce it in /vagrant to not download it again
+# For me 8.0.0 is the latest we put it in /vagrant to not download it again
 # The -q flag is need to not spam stdout on the host machine
 # We also pull the SHA512 hashes for you to check
 VER=8.0.0
@@ -33,7 +33,7 @@ wget -nc -q https://artifacts.elastic.co/downloads/beats/elastic-agent/elastic-a
 wget -nc -q https://artifacts.elastic.co/downloads/beats/elastic-agent/elastic-agent-$VER-windows-x86_64.zip -P /vagrant
 wget -nc -q https://artifacts.elastic.co/downloads/beats/elastic-agent/elastic-agent-$VER-windows-x86_64.zip.sha512 -P /vagrant
 
-# We output to a temp password file allwoing auto config later on
+# We output to a temp password file allowing auto config later on
 tar -xvf /vagrant/elastic-agent-8.0.0-linux-x86_64.tar.gz -C /opt/
 rpm --install /vagrant/elasticsearch-$VER-x86_64.rpm 2>&1 | tee /root/ESUpass.txt
 rpm --install /vagrant/kibana-$VER-x86_64.rpm
