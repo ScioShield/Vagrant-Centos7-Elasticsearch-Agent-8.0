@@ -5,7 +5,7 @@ Vagrant.configure("2") do |config|
     elastic.vm.box_url = "bento/centos-7"
     elastic.vm.provision :shell, path: "ESBootstrap.sh"
     elastic.vm.network :private_network, ip:"10.0.0.10"
-    elastic.vm.network "public_network", ip: "192.168.1.44W"
+    elastic.vm.network "public_network", ip: "192.168.1.44"
     elastic.vm.provider :virtualbox do |v|
       v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
       v.customize ["modifyvm", :id, "--cpus", 4]
