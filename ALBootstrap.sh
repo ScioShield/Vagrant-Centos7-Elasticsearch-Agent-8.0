@@ -21,4 +21,4 @@ sudo /opt/elastic-agent-8.0.0-linux-x86_64/elastic-agent install -f \
 
 echo "Script done. To connect go to https://10.0.0.10:5601 on your host system"
 echo "The elastic password will be displayed in the terminal you ran Vagrant from"
-echo "Under the line --Security autoconfiguration information--"
+echo "Under the line --Security autoconfiguration information---"
