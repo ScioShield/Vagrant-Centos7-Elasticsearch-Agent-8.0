@@ -6,7 +6,6 @@ Vagrant.configure("2") do |config|
     elastic.vm.provision :shell, path: "ESBootstrap.sh"
     elastic.vm.network :private_network, ip:"10.0.0.10"
     elastic.vm.network :forwarded_port, guest: 5601, host: 5601, host_ip: "0.0.0.0", id: "kibana", auto_correct: true
-    elastic.vm.network :forwarded_port, guest: 8888, host: 8888, host_ip: "0.0.0.0", id: "caldera", auto_correct: true
     elastic.vm.provider :virtualbox do |v|
       v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
       v.customize ["modifyvm", :id, "--cpus", 4]
