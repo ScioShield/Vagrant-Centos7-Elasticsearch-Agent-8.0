@@ -8,9 +8,13 @@ RAM - 13GB
 CPU - 8 vCores  
 
 ## Setup  
+<<<<<<< HEAD
 Vagrantfile to setup single node ES + Kib + Fleet cluster and an Elastic Agent on Linux and Windows  
 Also installs Caldera 3.1.0 on the Elastic node  
 Docs here: https://caldera.readthedocs.io/en/latest/  
+=======
+Vagrantfile to setup single node ES + Kib + Fleet cluster and a stand alone Elastic Agent on Linux and Windows  
+>>>>>>> 9423560cf6f91637e6c0616af93d472bda8e277b
 To start the Vagrant VM run <code>vagrant up</code>  
 To log in run  
 <code>vagrant ssh Elastic</code>  
@@ -18,7 +22,10 @@ To log in run
 <code>vagrant ssh Windows</code>  
 
 ### DNS settings
+<<<<<<< HEAD
 Used for remote deployments
+=======
+>>>>>>> 9423560cf6f91637e6c0616af93d472bda8e277b
 Replace (Vagrant host ip) with the IP of the host machine you will run Vagrant from  
 Windows Powershell  
 <code>Add-Content 'C:\Windows\System32\Drivers\etc\hosts' "(Vagrant host ip) elastic-8-sec"</code>  
@@ -30,6 +37,7 @@ Log into Kibana (local)
 <code>https://10.0.0.10:5601</code>   
 Log into Kibana (remote)  
 <code>https://elastic-8-sec:5601</code>  
+<<<<<<< HEAD
   
 Username: <code>elastic</code>  
 The password is printed to the console / terminal you ran <code>vagrant up</code> from  
@@ -48,3 +56,9 @@ Log into Caldera (local)
 <code>http://10.0.0.10:8888</code>  
 Log into Kibana (remote)  
 <code>http://elastic-8-sec:8888</code>  
+=======
+Username: <code>elastic</code>  
+The password is printed to the console / terminal you ran <code>vagrant up</code> from  
+under the section <code>--Security autoconfiguration information--</code>  
+Log into Caldera (remote)  
+>>>>>>> 9423560cf6f91637e6c0616af93d472bda8e277b
