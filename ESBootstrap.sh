@@ -215,3 +215,26 @@ sudo /opt/elastic-agent-$VER-linux-x86_64/elastic-agent install -f --url=https:/
 # Get the default policy id
 cat /root/Pid.txt | sed "s/\},{/'\n'/g" | grep "Default policy" | grep -oP '[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}' > /root/Eid.txt
 curl --silent --cacert /tmp/certs/ca/ca.crt -XGET "https://$DNS:$K_PORT/api/fleet/enrollment_api_keys" -H 'accept: application/json' -u elastic:$(sudo grep "generated password for the elastic" /root/ESUpass.txt | awk '{print $11}') | sed "s/\},{\|],/'\n'/g" | grep -E -m1 $(cat /root/Eid.txt) | grep -oP '[a-zA-Z0-9\=]{40,}' > /vagrant/AEtoken.txt
+
+# Caldera
+# yum
+yum install -y wget git screen gcc openssl-devel bzip2-devel libffi-devel zlib-devel xz-devel
+
+# python3
+wget -nc -q https://www.python.org/ftp/python/3.9.0/Python-3.9.0.tgz -P /usr/local/src
+tar -xvf /usr/local/src/Python-3.9.0.tgz -C /usr/local/src
+/usr/local/src/Python-3.9.0/configure --enable-optimizations
+make altinstall 
+
+# golang
+wget -nc -q https://go.dev/dl/go1.17.7.linux-amd64.tar.gz -P /usr/local/
+tar -xvf /usr/local/go1.17.7.linux-amd64.tar.gz -C /usr/local/
+echo "PATH=\$PATH:/usr/local/go/bin" >> /home/vagrant/.bash_profile
+
+# rust 
+su -c 'curl https://sh.rustup.rs -sSf | sh -s -- -y' vagrant
+
+# caldera
+git clone https://github.com/mitre/caldera.git --recursive /usr/local/caldera --branch 3.1.0
+su -c '/usr/local/bin/python3.9 -m pip install -r /usr/local/caldera/requirements.txt' vagrant
+chown -R vagrant /usr/local/caldera/
