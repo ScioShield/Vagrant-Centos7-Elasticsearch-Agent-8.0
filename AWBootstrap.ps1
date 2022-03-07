@@ -1,3 +1,4 @@
+# Add DNS for elastic
 Add-Content 'C:\Windows\System32\Drivers\etc\hosts' "10.0.0.10 elastic-8-sec"
 
 # Unpack the archive
