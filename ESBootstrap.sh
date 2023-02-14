@@ -20,7 +20,17 @@ rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
 # For me 8.0.0 is the latest we put it in /vagrant to not download it again
 # The -q flag is need to not spam stdout on the host machine
 # We also pull the SHA512 hashes for you to check
+
+# var settings
 VER=8.0.0
+IP_ADDR=10.0.0.10
+K_PORT=5601
+ES_PORT=9200
+F_PORT=8220
+DNS=elastic-8-sec
+
+echo "$IP_ADDR $DNS" >> /etc/hosts
+
 wget -nc -q https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$VER-x86_64.rpm -P /vagrant
 wget -nc -q https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$VER-x86_64.rpm.sha512 -P /vagrant
 
@@ -34,31 +44,24 @@ wget -nc -q https://artifacts.elastic.co/downloads/beats/elastic-agent/elastic-a
 wget -nc -q https://artifacts.elastic.co/downloads/beats/elastic-agent/elastic-agent-$VER-windows-x86_64.zip.sha512 -P /vagrant
 
 # We output to a temp password file allowing auto config later on
-tar -xvf /vagrant/elastic-agent-8.0.0-linux-x86_64.tar.gz -C /opt/
+tar -xvf /vagrant/elastic-agent-$VER-linux-x86_64.tar.gz -C /opt/
 rpm --install /vagrant/elasticsearch-$VER-x86_64.rpm 2>&1 | tee /root/ESUpass.txt
 rpm --install /vagrant/kibana-$VER-x86_64.rpm
 
 # Make the cert dir to prevent pop-up later
 mkdir /tmp/certs/
 
-# var settings
-IP_ADDR=10.0.0.10
-K_PORT=5601
-ES_PORT=9200
-F_PORT=8220
-
-# Config the instances file for cert gen the ip is 10.0.0.10
+# Config the instances file for cert gen the ip is $IP_ADDR
 cat > /tmp/certs/instance.yml << EOF
 instances:
   - name: 'elasticsearch'
-    dns: [ 'elasticsearch.localdomain' ]
-    ip: [ '$IP_ADDR' ]
+    dns: ['$DNS']
+    ip: ['$IP_ADDR']
   - name: 'kibana'
-    dns: [ 'kibana.localdomain' ]
-    ip: [ '$IP_ADDR' ]
+    dns: ['$DNS']
   - name: 'fleet'
-    dns: [ 'fleet.localdomain' ]
-    ip: [ '$IP_ADDR' ]
+    dns: ['$DNS']
+    ip: ['$IP_ADDR']
 EOF
 
 # Make the certs and move them where they are needed
@@ -121,7 +124,7 @@ grep "New value:" /root/Kibpass.txt | awk '{print $3}' | sudo /usr/share/kibana/
 cat > /etc/kibana/kibana.yml << EOF
 # =========================== Kibana Configuration ============================
 # -------------------------------- Network ------------------------------------
-server.host: $IP_ADDR
+server.host: 0.0.0.0
 server.port: $K_PORT
 # ------------------------------ Elasticsearch --------------------------------
 elasticsearch.hosts: ["https://$IP_ADDR:$ES_PORT"]
@@ -132,6 +135,7 @@ server.ssl.enabled: true
 server.ssl.certificate: "/etc/kibana/certs/kibana.crt"
 server.ssl.key: "/etc/kibana/certs/kibana.key"
 elasticsearch.ssl.certificateAuthorities: [ "/etc/kibana/certs/ca.crt" ]
+elasticsearch.ssl.verificationMode: "none"
 # ---------------------------------- X-Pack ------------------------------------
 xpack.security.encryptionKey: "$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32 ; echo '')"
 xpack.encryptedSavedObjects.encryptionKey: "$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32 ; echo '')"
@@ -141,9 +145,12 @@ EOF
 systemctl start kibana
 systemctl enable kibana
 
+# Var settings (has to happen after Elastic is installed)
+E_PASS=$(sudo grep "generated password for the elastic" /root/ESUpass.txt | awk '{print $11}')
+
 # Test if Kibana is running
 echo "Testing if Kibana is online, could take some time, no more than 5 min"
-until curl --silent --cacert /tmp/certs/ca/ca.crt -XGET 'https://10.0.0.10:5601/api/fleet/agent_policies' -H 'accept: application/json' -u elastic:$(sudo grep "generated password for the elastic" /root/ESUpass.txt | awk '{print $11}') | grep -vq '"items":\[\]'
+until curl --silent --cacert /tmp/certs/ca/ca.crt -XGET "https://$DNS:$K_PORT/api/fleet/agent_policies" -H 'accept: application/json' -u elastic:$E_PASS | grep -vq '"items":\[\]'
 do
     echo "Kibana starting, still waiting..."
     sleep 5
@@ -151,33 +158,33 @@ done
 echo "Kibna online"
 
 # Make the Fleet token
-curl --silent -XPOST 'https://10.0.0.10:9200/_security/service/elastic/fleet-server/credential/token/fleet-token-1' \
+curl --silent -XPOST "https://$IP_ADDR:$ES_PORT/_security/service/elastic/fleet-server/credential/token/fleet-token-1" \
  --cacert /tmp/certs/ca/ca.crt \
- -u elastic:$(sudo grep "generated password for the elastic" /root/ESUpass.txt | awk '{print $11}') > /root/Ftoken.txt
+ -u elastic:$E_PASS > /root/Ftoken.txt
 
 # Get the policy key
-until curl --silent --cacert /tmp/certs/ca/ca.crt -XGET 'https://10.0.0.10:5601/api/fleet/agent_policies' -H 'accept: application/json' -u elastic:$(sudo grep "generated password for the elastic" /root/ESUpass.txt | awk '{print $11}') | grep -q "Default policy"
+until curl --silent --cacert /tmp/certs/ca/ca.crt -XGET "https://$DNS:$K_PORT/api/fleet/agent_policies" -H 'accept: application/json' -u elastic:$E_PASS | grep -q "Default policy"
 do 
   echo "Kibana loading policies, still waiting..."
   sleep 5
 done
 sleep 5
 echo "Kibana policies loaded"
-curl --silent --cacert /tmp/certs/ca/ca.crt -XGET 'https://10.0.0.10:5601/api/fleet/agent_policies' -H 'accept: application/json' -u elastic:$(sudo grep "generated password for the elastic" /root/ESUpass.txt | awk '{print $11}') > /root/Pid.txt
+curl --silent --cacert /tmp/certs/ca/ca.crt -XGET "https://$DNS:$K_PORT/api/fleet/agent_policies" -H 'accept: application/json' -u elastic:$E_PASS > /root/Pid.txt
 
 
 # Add host IP and yaml settings to Fleet API
-curl --silent --cacert /tmp/certs/ca/ca.crt -XPUT 'https://10.0.0.10:5601/api/fleet/outputs/fleet-default-output' \
- -u elastic:$(sudo grep "generated password for the elastic" /root/ESUpass.txt | awk '{print $11}') \
- -H 'accept: application/json' \
- -H 'kbn-xsrf: reporting' \
- -H 'Content-Type: application/json' -d'{
+curl --silent --cacert /tmp/certs/ca/ca.crt -XPUT "https://$DNS:$K_PORT/api/fleet/outputs/fleet-default-output" \
+ -u elastic:$E_PASS \
+ -H "accept: application/json" \
+ -H "kbn-xsrf: reporting" \
+ -H "Content-Type: application/json" -d'{
 "name": "default",
 "type": "elasticsearch",
 "is_default": true,
 "is_default_monitoring": true,
 "hosts": [
-  "https://10.0.0.10:9200"
+  "https://'$IP_ADDR:$ES_PORT'"
   ],
 "ca_sha256": "",
 "ca_trusted_fingerprint": "",
@@ -185,19 +192,19 @@ curl --silent --cacert /tmp/certs/ca/ca.crt -XPUT 'https://10.0.0.10:5601/api/fl
 }'
 
 # Add fleet server IP to Fleet API
-curl --silent --cacert /tmp/certs/ca/ca.crt -XPUT 'https://10.0.0.10:5601/api/fleet/settings' \
- -u elastic:$(sudo grep "generated password for the elastic" /root/ESUpass.txt | awk '{print $11}') \
+curl --silent --cacert /tmp/certs/ca/ca.crt -XPUT "https://$DNS:$K_PORT/api/fleet/settings" \
+ -u elastic:$E_PASS \
  -H 'accept: application/json' \
  -H 'kbn-xsrf: reporting' \
  -H 'Content-Type: application/json' -d'{
     "fleet_server_hosts": [
-      "https://10.0.0.10:8220"
+      "https://'$IP_ADDR:$F_PORT'"
     ]
 }'
 
 # Install the fleet server
-yes | sudo /opt/elastic-agent-8.0.0-linux-x86_64/elastic-agent install --url=https://10.0.0.10:8220 \
- --fleet-server-es=https://10.0.0.10:9200 \
+sudo /opt/elastic-agent-$VER-linux-x86_64/elastic-agent install -f --url=https://$DNS:$F_PORT \
+ --fleet-server-es=https://$DNS:$ES_PORT \
  --fleet-server-service-token=$(cat /root/Ftoken.txt | sed "s/\,/'\n'/g" | grep -oP '[^"name"][a-zA-Z0-9]{50,}') \
  --fleet-server-policy=$(cat /root/Pid.txt | sed "s/\},{/'\n'/g" | grep "Default Fleet Server policy" | grep -oP '[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}') \
  --certificate-authorities=/vagrant/ca.crt \
@@ -207,4 +214,8 @@ yes | sudo /opt/elastic-agent-8.0.0-linux-x86_64/elastic-agent install --url=htt
 
 # Get the default policy id
 cat /root/Pid.txt | sed "s/\},{/'\n'/g" | grep "Default policy" | grep -oP '[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}' > /root/Eid.txt
+<<<<<<< HEAD
 curl --silent --cacert /tmp/certs/ca/ca.crt -XGET 'https://10.0.0.10:5601/api/fleet/enrollment_api_keys' -H 'accept: application/json' -u elastic:$(sudo grep "generated password for the elastic" /root/ESUpass.txt | awk '{print $11}') | sed -e "s/\},{/'\n'/g" -e "s/items/'\n'/g" | grep -E -m1 $(cat /root/Eid.txt) | grep -oP '[a-zA-Z0-9\=]{40,}' > /vagrant/AEtoken.txt
+=======
+curl --silent --cacert /tmp/certs/ca/ca.crt -XGET "https://$DNS:$K_PORT/api/fleet/enrollment_api_keys" -H 'accept: application/json' -u elastic:$(sudo grep "generated password for the elastic" /root/ESUpass.txt | awk '{print $11}') | sed "s/\},{\|],/'\n'/g" | grep -E -m1 $(cat /root/Eid.txt) | grep -oP '[a-zA-Z0-9\=]{40,}' > /vagrant/AEtoken.txt
+>>>>>>> 65d5ba48b9a20dc38e9a3235a51daa5b4489e6b3
