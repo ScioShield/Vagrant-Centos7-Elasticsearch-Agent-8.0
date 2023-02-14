@@ -214,8 +214,4 @@ sudo /opt/elastic-agent-$VER-linux-x86_64/elastic-agent install -f --url=https:/
 
 # Get the default policy id
 cat /root/Pid.txt | sed "s/\},{/'\n'/g" | grep "Default policy" | grep -oP '[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}' > /root/Eid.txt
-<<<<<<< HEAD
 curl --silent --cacert /tmp/certs/ca/ca.crt -XGET 'https://10.0.0.10:5601/api/fleet/enrollment_api_keys' -H 'accept: application/json' -u elastic:$(sudo grep "generated password for the elastic" /root/ESUpass.txt | awk '{print $11}') | sed -e "s/\},{/'\n'/g" -e "s/items/'\n'/g" | grep -E -m1 $(cat /root/Eid.txt) | grep -oP '[a-zA-Z0-9\=]{40,}' > /vagrant/AEtoken.txt
-=======
-curl --silent --cacert /tmp/certs/ca/ca.crt -XGET "https://$DNS:$K_PORT/api/fleet/enrollment_api_keys" -H 'accept: application/json' -u elastic:$(sudo grep "generated password for the elastic" /root/ESUpass.txt | awk '{print $11}') | sed "s/\},{\|],/'\n'/g" | grep -E -m1 $(cat /root/Eid.txt) | grep -oP '[a-zA-Z0-9\=]{40,}' > /vagrant/AEtoken.txt
->>>>>>> 65d5ba48b9a20dc38e9a3235a51daa5b4489e6b3

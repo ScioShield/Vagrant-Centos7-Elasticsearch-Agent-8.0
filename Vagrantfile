@@ -40,23 +40,4 @@ Vagrant.configure("2") do |config|
         v.customize ["modifyvm", :id, "--name", "windows-agent-8"]
       end
     end
-<<<<<<< HEAD
-=======
-  end
-  config.vm.define "Windows" do |windows|
-    windows.vm.box = "gusztavvargadr/windows-10-21h2-enterprise"
-    windows.vm.box_version = "2102.0.2202"
-    windows.vm.hostname = 'windows-agent-8'
-    windows.vm.box_url = "gusztavvargadr/windows-10-21h2-enterprise"
-    windows.vm.provision :shell, privileged: "true", path: "AWBootstrap.ps1"
-    windows.vm.network :private_network, ip: "10.0.0.30"
-    windows.vm.provider :virtualbox do |v|
-	  v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
-      v.customize ["modifyvm", :id, "--cpus", 2]
-      v.customize ["modifyvm", :id, "--memory", 4096]
-      v.customize ["modifyvm", :id, "--name", "windows-agent-8"]
-      v.customize ["modifyvm", :id, "--nested-hw-virt", "off"]
-    end
-  end
->>>>>>> 65d5ba48b9a20dc38e9a3235a51daa5b4489e6b3
 end
